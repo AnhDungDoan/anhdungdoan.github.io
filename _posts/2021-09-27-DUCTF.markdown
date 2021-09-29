@@ -3,8 +3,8 @@ layout: post
 title: Down Under CTF 2021
 date: 2021-09-27 00:00:00 +0300
 description: WU Crypto # Add post description (optional)
-img: software.jpg # Add image post (optional)
-tags: [Productivity, Software] # add tag
+img: DUCTF-panel.jpg # Add image post (optional)
+tags: [Crypto, CTF] # add tag
 ---
 
 # **DownUnderCTF2021**
@@ -32,8 +32,6 @@ tags: [Productivity, Software] # add tag
 
 -   Giải phương trình bậc 2 là xong, lấy nghiệm nguyên dương :D
 
-```{=html}
-<!-- -->
 ```
     import math
 
@@ -45,6 +43,7 @@ tags: [Productivity, Software] # add tag
 
     for x in flag:
         print(chr(get(ord(x))), end = '')
+```
         
 
 **FLAG:**
@@ -123,7 +122,7 @@ còn lại là thử kết quả nào khi đưa dãy encrypted ra được 1 dã
 có độ dài tương đương là xong!
 
 ***code check***
-
+```
     enc = "Ujyw5dnFofaou0au3nx3Cn84"
     flag = ""
     def cal_frac(x):
@@ -138,6 +137,7 @@ có độ dài tương đương là xong!
 
     print(len(enc) == len(flag)))
     print(flag)
+```
 
 > FLAG: DUCTF{go0d_0l\'\_l4gr4ng3}
 
@@ -150,7 +150,7 @@ AES encryption challenge.
 > nc pwn-2021.duc.tf 31914
 
 *aes-ecb.py*
-
+```
     #!/usr/bin/python3
     import sys
     import os
@@ -182,6 +182,7 @@ AES encryption challenge.
 
     if __name__ == '__main__':
         main()
+```
 
 **Solve:**
 
@@ -204,7 +205,7 @@ Nhận xét 2:
     theo từng block, nên mình tạm sẽ không quan tâm đến 2 block
     đầu(FLAG), mình chỉ attack để lấy key, sau đó khôi phục lại FLAG
 
--   ![image.png](199ca84dd1d748edaf01c85132b79517159936ad89484e6a27115e54572789b18c07c9d7.png)
+-   ![image.png](/assets/img/ductf-breakme.png)
 
 -   Như hình trên, mình sẽ lợi dụng block 3 và 5 để brute force từng kí
     tự một trong KEY, nếu block 3 == block 5, nghĩa là kí tự đó đúng,
@@ -242,7 +243,7 @@ Nhận xét 2:
 
 Mình lụm được key = \'!*SECRETSOURCE*!\', sau đó decrypt lại thôi, dễ ẹc
 vl
-
+```
     key =   b'!_SECRETSOURCE_!'
     def main():
         cipher = AES.new(key, AES.MODE_ECB)
@@ -256,6 +257,7 @@ vl
     cipher = AES.new(key, AES.MODE_ECB)
     enc = cipher.decrypt(base64.b64decode(flag))
     print(enc)
+```
 
 > FLAG: DUCTF{ECB_M0DE_K3YP4D_D474_L34k}
 
@@ -274,7 +276,7 @@ the treasure is in the middle of no where\...
 **Problem**
 
 *treasure.py*
-
+```
     #!/usr/bin/python3
 
     import re
@@ -348,9 +350,8 @@ the treasure is in the middle of no where\...
 
     if __name__ == '__main__':
         main()
-:::
+```
 
-::: {.cell .markdown id="FEn3HEm_-CZQ"}
 **Solve**
 
 He he bài này tui sẽ không ghi code cụ thể tại vì tui lấy kết quả từ
@@ -374,15 +375,13 @@ Nhận xét củ chuối 2:
     khi số đó kết hợp với s2 và s3 (được random) để nó return từ hàm
     reveal_secret ra 1 số = FAKE_COORDS mà mình biết sẵn.
 
--   Thì reveal_secret =
-    $(<input>*REALCOORDS)^3 * (r1^3*r2^3*REALCOORDS^2)^(-1)$. Vậy bây
+-   Thì reveal_secret = $(<input>*REALCOORDS)^3 * (r1^3*r2^3*REALCOORDS^2)^(-1)$. Vậy bây
     giờ mình chỉ cần nhập vào 1 sao cho vế đầu trước dấu $*$ nó trở
     thành $(r1^3*r2^3*REALCOORDS^2 * FAKECOORDS)$ là xong, đúng hok 😎
 
 -   À quên, nhớ tìm số làm sao nó \^3 %p == FAKECOORDS
 
-```{=html}
-<!-- -->
+
 ```
     for i in range(100000):
         temp = FAKE_COORDS + p*i
@@ -390,19 +389,20 @@ Nhận xét củ chuối 2:
         if (check == True):
             print("b = ", b)
             break
+```
 
 -   Mình lần lượt tính các giá trị: $REALCOORDS^(-1)$,
     $REALCOORDS^(2/3)$, rồi nhân các thành phần từ output ban đầu mình
     nhận được lần đầu tiên ($r1*r2*REALCOORDS$) là lụm được flag
 
-```{=html}
-<!-- -->
+
 ```
     print('%.15f' % pow(REAL_COORDS,2/3))
 
     temp = pow(m,3)*REAL_COORDS_1 %p
     d = inverse(3, p-1)
     msg = pow(temp, d, p)
+```
 
 > FLAG:
 > DUCTF{m4yb3_th3_r34L_tr34sur3_w4s_th3_fr13nDs_w3_m4d3_al0ng_Th3_W4y\...\....}
@@ -412,7 +412,7 @@ quần què gì ở bài này thì full ở đây, em tới đâu em làm tới 
 lại còn lú mà :v. Nhưng về cơ bản ý tưởng như trên nếu mà từng thử giải
 bài này có được hay không được thì đọc qua ý tưởng trên chắc là sẽ giải
 đc 100% đó 🤡
-
+```
     import re
     from Crypto.Util.number import *
     from Crypto.Random import random
@@ -453,6 +453,6 @@ bài này có được hay không được thì đọc qua ý tưởng trên ch�
     print(pow(m,3)*REAL_COORDS_1 %p)
 
     #msg * reveal
-
+```
 
 Cám ơn Cám ơn Cám ơn x3.14 🙈🙈🙈🙈🙈
