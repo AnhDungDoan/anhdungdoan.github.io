@@ -375,7 +375,7 @@ Nhận xét củ chuối 2:
     khi số đó kết hợp với s2 và s3 (được random) để nó return từ hàm
     reveal_secret ra 1 số = FAKE_COORDS mà mình biết sẵn.
 
--   Thì reveal_secret = $(<input>*REALCOORDS)^3 * (r1^3*r2^3*REALCOORDS^2)^(-1)$. Vậy bây
+-   Thì reveal_secret = $(<in-put>*REALCOORDS)^3 * (r1^3*r2^3*REALCOORDS^2)^(-1)$. Vậy bây
     giờ mình chỉ cần nhập vào 1 sao cho vế đầu trước dấu $*$ nó trở
     thành $(r1^3*r2^3*REALCOORDS^2 * FAKECOORDS)$ là xong, đúng hok 😎
 

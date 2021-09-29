@@ -9,15 +9,15 @@ site-twitter: #if your site has a twitter account, enter it here
 # Author Settings
 author: Doan Anh Dung # add your name
 author-img: doan-dung.jpg # add your photo
-about-author: Hello cac anh em, tui la Doan Anh Dung. Here is some write-up of crypto # add description
+about-author: Hello cac anh em, tui la Doan Anh Dung. Here is some crypto write-up ne # add description
 social-twitter: khong_co_dau_khoi_kiem_he_he # add your Twitter handle
 social-facebook: gnudnaod
 social-github: AnhDungDoan # add your Github handle
-social-linkedin: gnudnaod# add your Linkedin handle
+social-linkedin: gnudnaod # add your Linkedin handle
 social-email: khongphaidoandung@gmail.com
 
 # Disqus
-discus-identifier: mr-brown # add your discus identifier
+discus-identifier: gnud # add your discus identifier
 
 # Tracker
 analytics: # Google Analytics
