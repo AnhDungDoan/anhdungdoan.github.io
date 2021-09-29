@@ -10,10 +10,10 @@ site-twitter: #if your site has a twitter account, enter it here
 author: Doan Anh Dung # add your name
 author-img: doan-dung.jpg # add your photo
 about-author: Hello cac anh em, tui la Doan Anh Dung. Here is some write-up of crypto # add description
-social-twitter: # add your Twitter handle
+social-twitter: khong_co_dau_khoi_kiem_he_he # add your Twitter handle
 social-facebook: gnudnaod
 social-github: AnhDungDoan # add your Github handle
-social-linkedin: # add your Linkedin handle
+social-linkedin: gnudnaod# add your Linkedin handle
 social-email: khongphaidoandung@gmail.com
 
 # Disqus
