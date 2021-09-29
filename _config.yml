@@ -1,4 +1,4 @@
-title: Welcome to my Page - Gnud said !!!
+title: Welcome to my Page - Gnud said
 description: > # this means to ignore newlines until "baseurl:"
   This page is awesome
 permalink: ':title/'
