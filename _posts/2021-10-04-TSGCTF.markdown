@@ -3,7 +3,7 @@ layout: post
 title: TSG CTF 2021
 date: 2021-10-04 00:00:00 +0300
 description: WU Crypto # Add post description (optional)
-img: TSG-panel.png # Add image post (optional)
+img: TSGCTF-panel.PNG # Add image post (optional)
 tags: [Crypto, CTF] # add tag
 ---
 
