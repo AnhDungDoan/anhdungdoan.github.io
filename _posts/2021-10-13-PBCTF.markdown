@@ -1,0 +1,279 @@
+---
+layout: post
+title: PBCTF 2021
+date: 2021-10-13 00:00:00 +0300
+description: WU Crypto # Add post description (optional)
+img: PBCTF-panel.png # Add image post (optional)
+tags: [Crypto, CTF] # add tag
+---
+
+# **PBCTF 2021**
+
+# **ALKALOID STREAM** (134 pts)
+*I found a weird stream cipher scheme. Can you break this?*
+
+gen.py
+```
+#!/usr/bin/env python3
+
+import random
+from flag import flag
+
+def keygen(ln):
+    # Generate a linearly independent key
+    arr = [ 1 << i for i in range(ln) ]
+
+    for i in range(ln):
+        for j in range(i):
+            if random.getrandbits(1):
+                arr[j] ^= arr[i]
+    for i in range(ln):
+        for j in range(i):
+            if random.getrandbits(1):
+                arr[ln - 1 - j] ^= arr[ln - 1 - i]
+
+    return arr
+
+def gen_keystream(key):
+    ln = len(key)
+    
+    # Generate some fake values based on the given key...
+    fake = [0] * ln
+    for i in range(ln):
+        for j in range(ln // 3):
+            if i + j + 1 >= ln:
+                break
+            fake[i] ^= key[i + j + 1]
+
+    # Generate the keystream
+    res = []
+    for i in range(ln):
+        t = random.getrandbits(1)
+        if t:
+            res.append((t, [fake[i], key[i]]))
+        else:
+            res.append((t, [key[i], fake[i]]))
+
+    # Shuffle!
+    random.shuffle(res)
+
+    keystream = [v[0] for v in res]
+    public = [v[1] for v in res]
+    return keystream, public
+
+def xor(a, b):
+    return [x ^ y for x, y in zip(a, b)]
+
+def recover_keystream(key, public):
+    st = set(key)
+    keystream = []
+    for v0, v1 in public:
+        if v0 in st:
+            keystream.append(0)
+        elif v1 in st:
+            keystream.append(1)
+        else:
+            assert False, "Failed to recover the keystream"
+    return keystream
+
+def bytes_to_bits(inp):
+    res = []
+    for v in inp:
+        res.extend(list(map(int, format(v, '08b'))))
+    return res
+
+def bits_to_bytes(inp):
+    res = []
+    for i in range(0, len(inp), 8):
+        res.append(int(''.join(map(str, inp[i:i+8])), 2))
+    return bytes(res)
+
+flag = bytes_to_bits(flag)
+
+key = keygen(len(flag))
+keystream, public = gen_keystream(key)
+assert keystream == recover_keystream(key, public)
+enc = bits_to_bytes(xor(flag, keystream))
+
+print(enc.hex())
+print(public)
+
+```
+
+output.txt
+```
+file này sẽ up trên drive nha, file này lớn! Link sẽ úp-đét sau
+```
+
+**Solve:**
+
+Nhận xét:
+
+Ban đầu mình đưa biến enc ở file txt về dạng bits, thì thấy nó dài 600bits
+
+Bài này khá khoai nếu chỉ nhìn chăm chăm vào cách nó encrypt mà không chú ý kĩ vào từng hàm, đặc biệt là hàm gen_keystream của nó. Cụ thể như sau:
+```
+for i in range(ln):
+        for j in range(ln // 3):
+            if i + j + 1 >= ln:
+                break
+            fake[i] ^= key[i + j + 1]
+```
+
+- Dừng khoảng chừng là 2 giây? Vì i chạy từ 0 đến ln-1, vậy nếu i == ln-1 thì phần if sẽ thỏa mãn điều kiện và break ngay, đồng nghĩa với việc fake[ln-1] = 0
+- Lần theo dấu vết đó thì fake[ln-2] sẽ bằng key[ln-1], fake[ln-3] = key[ln-1] ^ key[ln-2] = fake[ln-2] ^ key[ln-2]
+- Vậy công thức tổng quát 200 phần tử đầu mình đã có! Mình chỉ cần xor fake và key của i-1 rồi xem ở dòng i xuất hiện ở bên nào(Do vòng j for đến 600/3 = 200)
+- Vậy 400 phần tử còn lại mình tìm như nào? Sau khi nhận xét được key và fake ở mỗi lượt tìm kiếm, mình lưu 200 phần tử trước đó vào 1 mảng luôn, sau đó cứ mỗi lần tìm được key, mình đều lưu lại để sử dụng cho việc phân biệt key và fake tiếp theo.
+
+- Và đây là code tìm 200 cái key đầu của mình, về phần key[599], ta dễ dàng tìm được vì fake[599] = 0
+
+```
+step = 205
+check[step] = True
+cou = 1
+step = 1400714221870952494615363674397671002942566332491236206763593417473795738355401350930926673064015705912976960035864926610332139062931171063676126565794843044414821051808290441350503
+realkey = [0]*600
+realkey[599] = step
+suffix = step 
+
+while (True):
+    fstep = step
+    for i, u in enumerate(public):
+        if (check[i] == False):
+            v0, v1 = u[0], u[1]
+            if (v0 == step):
+                cou+=1
+                check[i] = True
+                keystream[i] = 1
+                realkey[600 - cou] = v1
+                suffix ^= v1
+                step = v0^v1
+                break
+            elif (v1 == step):
+                cou+=1
+                check[i] = True
+                keystream[i] = 0
+                realkey[600 - cou] = v0
+                suffix ^= v0
+                step = v0^v1
+                break
+
+    if (cou == 200):
+        break
+```
+
+- Tiếp theo do đã có 200 key đầu, mình tìm các key sau: Cứ mỗi lượt, mình xor thêm thằng kế tiếp và bỏ đi thằng thứ 201 kể từ vị trí đang xét của mình, để thỏa mãn việc từ vị trí i, fake = 200 key liên tiếp xor nhau:
+
+```
+while (True):
+    for i, u in enumerate(public):
+        if (check[i] == False):
+            v0, v1 = u[0], u[1]
+            if (v0 == suffix):
+                cou+=1
+                check[i] = True
+                keystream[i] = 1
+                realkey[600 - cou] = v1
+                suffix ^= v1
+                suffix ^= realkey[800 - cou]
+                break
+            elif (v1 == suffix):
+                cou+=1
+                check[i] = True
+                keystream[i] = 0
+                realkey[600 - cou] = v0
+                suffix ^= v0
+                suffix ^= realkey[800 - cou]
+                break
+    if (cou == 600):
+        break
+```
+
+Ô kê la vậy là xong rồi, việc còn lại là in flag thôi, mình mượn cái hàm bytes_to_bit và bits_to_bytes từ đề bài luôn 😎
+```
+def bytes_to_bits(inp):
+    res = []
+    for v in inp:
+        res.extend(list(map(int, format(v, '08b'))))
+    return res
+
+def bits_to_bytes(inp):
+    res = []
+    for i in range(0, len(inp), 8):
+        res.append(int(''.join(map(str, inp[i:i+8])), 2))
+    return bytes(res)
+
+def xor(a, b):
+    return [x ^ y for x, y in zip(a, b)]
+
+enc = "cd4c1a7edd7a421dcea72ae8bf47946d74f6cdba763a6a052a3f2955333dc6fa267f5297c405bf807e922380ebf9628194bf319e8ae4074dc5476de1d81a52d72c29f0e8b590ac8f6a78bb"
+public = [copy từ file ra ấy, tại tui lười import 🙄]
+import random
+
+enc = bytes_to_bits(bytes.fromhex(enc))
+print("len bits enc = ", len(enc))
+
+print("len pub = ", len(public))
+keystream = [0]*601
+check = [False]*601
+
+step = 205
+check[step] = True
+cou = 1
+step = 1400714221870952494615363674397671002942566332491236206763593417473795738355401350930926673064015705912976960035864926610332139062931171063676126565794843044414821051808290441350503
+realkey = [0]*600
+realkey[599] = step
+suffix = step 
+
+while (True):
+    fstep = step
+    for i, u in enumerate(public):
+        if (check[i] == False):
+            v0, v1 = u[0], u[1]
+            if (v0 == step):
+                cou+=1
+                check[i] = True
+                keystream[i] = 1
+                realkey[600 - cou] = v1
+                suffix ^= v1
+                step = v0^v1
+                break
+            elif (v1 == step):
+                cou+=1
+                check[i] = True
+                keystream[i] = 0
+                realkey[600 - cou] = v0
+                suffix ^= v0
+                step = v0^v1
+                break
+
+    if (cou == 200):
+        break
+
+while (True):
+    for i, u in enumerate(public):
+        if (check[i] == False):
+            v0, v1 = u[0], u[1]
+            if (v0 == suffix):
+                cou+=1
+                check[i] = True
+                keystream[i] = 1
+                realkey[600 - cou] = v1
+                suffix ^= v1
+                suffix ^= realkey[800 - cou]
+                break
+            elif (v1 == suffix):
+                cou+=1
+                check[i] = True
+                keystream[i] = 0
+                realkey[600 - cou] = v0
+                suffix ^= v0
+                suffix ^= realkey[800 - cou]
+                break
+    if (cou == 600):
+        break
+
+print(bits_to_bytes(xor(enc, keystream)))
+```
+
+>FLAG: pbctf{super_duper_easy_brute_forcing_actually_this_one_was_made_by_mistake}
