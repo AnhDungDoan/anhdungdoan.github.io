@@ -1093,3 +1093,25 @@ print(base64.b64encode(iv+new_cipher))
 ```
 
 Khò khòoooooo
+
+# **ConfuseOne (464pts)**
+
+>http://139.180.213.39/
+
+Bài này thật sự cảm ơn anh **@dtro20** trong team mình rất nhiều 🥰. Khai sáng quá nhiều thứ luôn.
+
+![image.png](/assets/img/ASCISQual2021/confuse1.png)
+
+-> Nhìn vào mình chả có ý tưởng gì cả, chỉ reg acc rồi login vô ngồi nhìn thôi. Nhưng?
+
+![image.png](/assets/img/ASCISQual2021/confuse2.png)
+
+Token của nó là dạng JWT, và bài này chắc là JWT rs256!
+
+Follow theo [write-up này](https://ctftime.org/writeup/26173). Để có hướng giải nè. Rất đầy đủ và chi tiết. 
+
+Sau đó thay authtoken vào thôi
+![image.png](/assets/img/ASCISQual2021/confuse3.png)
+
+Quá kinh khủng? Đề web hay là crypto vậy ạ?
+Cám ơn mn đã đọc tới đây :(((
