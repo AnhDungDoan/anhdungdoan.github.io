@@ -683,3 +683,413 @@ generate_public_key(private_key, filename="ca-public-key.pem", country="US", sta
 Nước mắt anh rơi, trò chơi kết thúc.
 
 > 1 it comment: bài này tốn nhiều thời gian vl, nhưng mà mình mài đít đọc được file pem là gì, ca như nào,... Thôi thì thành quả cũng đáng nhỉ 🤗
+
+
+# **Noone (100pts)**
+
+>http://139.180.213.39:8300/
+
+Bài này nhiều đội solve nhất trong mảng crypto (37). 
+
+Flashback lại bài trước, các bước tương tự để coi lại source, tui lười ghi lại quá đi 😑
+
+*app.py*
+
+```
+#!/usr/bin/python3
+
+import base64
+import hashlib
+import sys
+import os
+from Crypto import Random
+from Crypto.Cipher import AES
+from werkzeug.exceptions import abort
+from functools import wraps
+from flask import Flask, render_template, request, url_for, flash, redirect, session, make_response, g
+import mysql.connector
+
+
+DB_HOST = os.getenv("MYSQL_HOST", "xxxxxxx")
+DB_USER = os.getenv("MYSQL_USER", "xxxxxxx") 
+DB_PASS = os.getenv("MYSQL_PASSWORD", "xxxxxxx") 
+DB_NAME = os.getenv("MYSQL_DATABASE", "xxxxxxx") 
+
+
+# input: bytes, output: base64 text
+def encrypt(plainbytes, key):
+    
+    iv = Random.new().read(AES.block_size)
+    
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    
+    cipherbytes = cipher.encrypt(plainbytes)
+
+    ciphertext = base64.b64encode(iv + cipherbytes)
+
+    return ciphertext
+
+
+# input: base64 text, output: bytes
+def decrypt(ciphertext, key):
+
+    cipherbytes = base64.b64decode(ciphertext)
+
+    iv = cipherbytes[:AES.block_size]
+
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+
+    plainbytes = cipher.decrypt(cipherbytes[AES.block_size:])
+
+    return plainbytes
+
+def get_db_connection():
+    conn = mysql.connector.connect(host = DB_HOST, user = DB_USER, passwd = DB_PASS, database = DB_NAME, auth_plugin='mysql_native_password')
+    conn.autocommit = True
+    return conn
+
+def get_post(post_id):
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute('SELECT * FROM posts WHERE id = %s',
+                        (post_id,))
+    post = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    if post is None:
+        abort(404)
+    return post
+
+def verify_login(username, password):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT id, username, password, email, encryptkey, role from users WHERE username = %s AND password = %s',
+                    (username, password))
+    user = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+
+    return user
+
+def do_register(username, password, email, role):
+    key = base64.b64encode(Random.new().read(AES.block_size))
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('INSERT INTO users (username, password, email, role, encryptkey ) VALUES (%s, %s, %s, %s, %s)',
+                    (username, password, email, role, key))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+def get_encryptkey(userid):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT encryptkey from users WHERE id = %s',
+                    (userid, ))
+    user = cur.fetchone()
+    
+    cur.close()
+    conn.close()
+
+    return base64.b64decode(user[0])
+
+app = Flask(__name__)
+
+app.config['SECRET_KEY'] = 'xxxxxxxxxxxxxxxx'
+
+ROLE_ADMIN = 0
+ROLE_USER = 1
+
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+
+        try:
+        
+            ciphertext = request.cookies.get('authtoken')
+
+            userid = request.cookies.get('userid')
+
+            if not ciphertext or not userid:
+                return redirect(url_for('login'))
+
+            encryptkey = get_encryptkey(userid)
+
+            plainbytes = decrypt(ciphertext, encryptkey)
+
+            usernamelen = int.from_bytes(plainbytes[:2], "little")
+            usernameencoded = plainbytes[2:usernamelen+2]
+            username = usernameencoded.decode("utf-8")
+            role = plainbytes[usernamelen+2]
+            
+            g.username = username
+            g.role = role
+
+        except:
+            abort(401)
+        
+        return f(*args, **kwargs)
+   
+    return wrap
+
+
+@app.route("/index")
+@login_required
+def index():
+    conn = get_db_connection()
+    cur = conn.cursor(dictionary=True)
+    cur.execute('SELECT * FROM posts')
+    posts = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('index.html', posts=posts)
+
+@app.route("/flag")
+@login_required
+def flag():
+    flag = "You are not admin"
+    if g.role == ROLE_ADMIN:
+        flag = "xxxxxxxxxxxxxxxxxxxxxxx"
+    return render_template('flag.html', flag=flag)
+
+
+@app.route('/<int:post_id>')
+@login_required
+def post(post_id):
+    post = get_post(post_id)
+    return render_template('post.html', post=post)
+
+@app.route("/about")
+@login_required
+def about():
+    return render_template('about.html')
+
+@app.route("/register", methods=('GET', 'POST'))
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+        role = ROLE_USER
+
+        if not username or not password:
+            flash('Username and Password is required!')
+        else:
+            do_register(username, password, email, role)
+
+            return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+@app.route("/", methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if not username or not password:
+            flash('Username and Password is required!')
+        else:
+            # verify login
+            user = verify_login(username, password)
+
+            if not user:
+                flash('Username and Password is not correct!')
+            else:
+                
+                userid = user[0]
+                username = user[1]
+                role = user[5]
+
+                # get key
+                key = base64.b64decode(user[4])
+
+                # create authtoken
+                usernamebytes = username.encode('utf-8')
+                usernamelen = len(usernamebytes)
+                plainbytes = len(usernamebytes).to_bytes(2, "little") + usernamebytes + role.to_bytes(1, "little")
+
+                ciphertext = encrypt(plainbytes, key)
+
+                response = make_response(redirect(url_for('index')))
+
+                response.set_cookie('userid', str(userid))
+                response.set_cookie('authtoken', ciphertext)
+
+                return response
+
+    return render_template('login.html')
+
+@app.route("/logout")
+def logout():
+    response = make_response(redirect(url_for('index')))
+
+    response.set_cookie('userid', '0', expires=0)
+    response.set_cookie('authtoken', '', expires=0)
+
+    return response
+
+app.run(host="0.0.0.0", port=8080, debug=False)
+```
+
+Sau khi biết 1 chút đỉnh về web run rồi, mình ngó thẳng vào `flag`:
+
+```
+@app.route("/flag")
+@login_required
+def flag():
+    flag = "You are not admin"
+    if g.role == ROLE_ADMIN:
+        flag = "xxxxxxxxxxxxxxxxxxxxxxx"
+    return render_template('flag.html', flag=flag)
+```
+
+Mục đích lại rất đơn giản: đưa mình thành admin. Còn làm như nào thì chưa biết 😥
+
+Ok giờ xem mấy function nào: À đây rồi, phần `login`
+
+```
+@app.route("/", methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if not username or not password:
+            flash('Username and Password is required!')
+        else:
+            # verify login
+            user = verify_login(username, password)
+
+            if not user:
+                flash('Username and Password is not correct!')
+            else:
+                
+                userid = user[0]
+                username = user[1]
+                role = user[5]
+
+                # get key
+                key = base64.b64decode(user[4])
+
+                # create authtoken
+                usernamebytes = username.encode('utf-8')
+                usernamelen = len(usernamebytes)
+                plainbytes = len(usernamebytes).to_bytes(2, "little") + usernamebytes + role.to_bytes(1, "little")
+
+                ciphertext = encrypt(plainbytes, key)
+
+                response = make_response(redirect(url_for('index')))
+
+                response.set_cookie('userid', str(userid))
+                response.set_cookie('authtoken', ciphertext)
+
+                return response
+
+    return render_template('login.html')
+```
+
+Rõ ràng lúc login, không chỉ nó verify acc của mình, nó còn lấy thông tin mình làm gì nữa kìaaaaa
+À, nó lụm plaintext để decrypt, xong rồi set authtoken 🙂. Vậy bây giờ mình xem phần `ciphertext = encrypt(plainbytes, key)` thôi. À mà key là gì đó nó lưu trong db của server, chắc là gen random 😶 nên mình không đoán được đâu.
+
+```
+def encrypt(plainbytes, key):
+    
+    iv = Random.new().read(AES.block_size)
+    
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    
+    cipherbytes = cipher.encrypt(plainbytes)
+
+    ciphertext = base64.b64encode(iv + cipherbytes)
+
+    return ciphertext
+```
+
+Vơn, quá ngắn gọn, mà càng ngắn càng nguy hiểm, xem sơ qua nào. Hê, đây là `AES mode CFB` với iv được random, sau khi encrypt, kết quả được trả về là iv + ciphertext đã được encode bằng base64. Vậy nghĩa là mình lụm authtoken về, sau đó là lấy được iv và cipher text ngay!.
+
+- Plaintext phải có độ dài là bội của 16. nhìn vào plainbytes ở function trên-trên, thấy là len(username) chỉ lấy 2 bytes, role lấy 1 bytes, vậy giờ mình ***TẠO ACCOUNT MỚI*** có độ dài là 13 là ngon (vì cộng vào là 16). Sau khi dăng nhập, mình lấy được iv và cipher lần lượt là 16 kí tự đầu, và 16 kí tự cuối của cipher. 
+- Sau đây mình mô tả cái `AES mode CFB`:
+
+![image.png](/assets/img/ASCISQual2021/noone1.png)
+
+- iv vô 1 loạt xử lí phức tạp của AES, xong xor plaintext block đầu ra được cipher block đầu, còn về sau mình không thèm tính nữa. Vì plaintext của mình đúng 16 kí tự như đã giải thích trên nên chỉ quan tâm block đầu.
+- Minh dùng cipher ^ plain(cái này mình biết) ^ plain(mình muốn tạo) thì sẽ cho ra cipher mới mình cần thay đổi.
+- Sau đó mình sửa lại trong authtoken và F5 lại:
+
+![image.png](/assets/img/ASCISQual2021/noone2.png)
+
+- Ý tưởng là vậy, nhưng để các anh em muốn solve lại thì nhiều thứ sẽ thay đổi theo session. Code mình bỏ đây, anh em thay số liệu nhé hehe
+
+*solve.py*
+```
+import base64
+import hashlib
+from Crypto import Random
+from Crypto.Cipher import AES
+import binascii
+
+def xor(var, key):
+    return bytes(a ^ b for a, b in zip(var, key))
+
+def encrypt(plainbytes, key):
+    
+    iv = Random.new().read(AES.block_size)
+    
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+    
+    cipherbytes = cipher.encrypt(plainbytes)
+
+    ciphertext = base64.b64encode(iv + cipherbytes)
+
+    return ciphertext
+
+# input: base64 text, output: bytes
+def decrypt(ciphertext, key):
+
+    cipherbytes = base64.b64decode(ciphertext)
+
+    iv = cipherbytes[:AES.block_size]
+
+    cipher = AES.new(key, AES.MODE_CFB, iv)
+
+    plainbytes = cipher.decrypt(cipherbytes[AES.block_size:])
+
+    return plainbytes
+
+user = [422, "dr00py1234567", "dr00py", "dr00py1@gmail.com", b'ZG9hbmFuaGR1bmcxMjM0NQ==', 1]
+
+userid = user[0]
+username = user[1]
+role = user[5]
+
+key = base64.b64decode(user[4])
+
+usernamebytes = username.encode('utf-8')
+usernamelen = len(usernamebytes)
+plainbytes = len(usernamebytes).to_bytes(2, "little") + usernamebytes + role.to_bytes(1, "little")
+
+#plainbytes1 = len(usernamebytes).to_bytes(2, "little") + usernamebytes + role.to_bytes(0, "little")
+plainbytes1 = b'\r\x00dr00py1234567\x00'
+
+
+authtoken = "hBlIJVgM/brypR2GoA0xs3MEyRUuyesjltZ58mkVaNI="
+tokenarray = base64.b64decode(authtoken)
+iv = tokenarray[:16]
+cipherbytes = tokenarray[16:]
+
+print("iv =", iv)
+print("cipher =", cipherbytes)
+
+new_cipher = xor(xor(plainbytes, cipherbytes), plainbytes1)
+print("cipher =", new_cipher)
+print(base64.b64encode(iv+new_cipher))
+
+# thay cookie => solve
+
+```
+
+Khò khòoooooo
