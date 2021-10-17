@@ -9,6 +9,8 @@ tags: [Crypto, CTF] # add tag
 
 # **ASCIS Qualification 2021**
 
+Chào các anh em, toi là dr00py, cryptographer của UIT.W3 😃
+
 *khoe tí: team tui (UIT.W3) được đi final các anh em ạ he he he*
 
 ![image.png](/assets/img/ASCISQual2021/rank.png)
