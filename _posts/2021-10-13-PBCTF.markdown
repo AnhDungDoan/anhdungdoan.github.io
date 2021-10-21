@@ -103,6 +103,9 @@ print(public)
 output.txt
 ```
 file này sẽ up trên drive nha, file này lớn! Link sẽ úp-đét sau
+https://drive.google.com/file/d/1QuEBKTnVjQ_5XEpWemO5GMJVT_qwbhTb/view?usp=sharing
+
+đây nè :D
 ```
 
 **Solve:**
