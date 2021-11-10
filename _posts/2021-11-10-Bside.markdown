@@ -158,4 +158,11 @@ Với n = m, ta được:
 
 ![image.png](/assets/img/Bside2021/12.png)
 
-Với 
+mà m là số nguyên tố => các phép chia đều là số không nguyên, ta rút được 1 tính chất như sau:
+
+![image.png](/assets/img/Bside2021/13.png)
+
+............................................
+
+Vậy phép toán trở thành:
+
