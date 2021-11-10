@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ASCIS 2021
+title: BSides Ahmedabad CTF 2021
 date: 2021-10-10 00:00:00 +0300
 description: WU Crypto # Add post description (optional)
 img: Bside2021-panel.png # Add image post (optional)
@@ -42,7 +42,7 @@ y = 0x6fa0fcc8c9c5f695a5709243698d7640c27c45352375919d538137333ab3a2c748cae5e7c1
 
 **Solve:**
 
-- Theo nhị thức Newton, mình khai triển (p+1)^3 ra:
+- Theo nhị thức Newton, bây giờ mình gọi p là n nha, mình khai triển (n+1)^3 ra:
 ![image.png](/assets/img/Bside2021/Newton.png)
 
 ![image.png](/assets/img/Bside2021/1.png)
@@ -53,3 +53,6 @@ Gọi:
 
 =>
 ![image.png](/assets/img/Bside2021/4.png)
+
+=> 
+y đồng dư m*n +1 (mod n^2)
