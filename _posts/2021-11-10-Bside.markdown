@@ -140,6 +140,22 @@ if __name__ == '__main__':
 
 ![image.png](/assets/img/Bside2021/7.png) với i chạy từ 0 đến n-1
 
-$a^2$
+Có:
 
+![image.png](/assets/img/Bside2021/8.png)
 
+và:
+
+![image.png](/assets/img/Bside2021/9.png)
+
+Gom nhóm nó lại:
+
+![image.png](/assets/img/Bside2021/10.png)
+
+Với n = m, ta được:
+
+![image.png](/assets/img/Bside2021/11.png)
+
+![image.png](/assets/img/Bside2021/12.png)
+
+Với 
