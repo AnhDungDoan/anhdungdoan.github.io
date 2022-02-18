@@ -1,7 +1,7 @@
 ---
 layout: post
 title: DefCamp CTF 2021-22
-date: 2021-02-18 00:00:00 +0300
+date: 2022-02-18 00:00:00 +0300
 description: WU Crypto # Add post description (optional)
 img: dctf_banner.jpg # Add image post (optional)
 tags: [Crypto, RE] # add tag
@@ -13,7 +13,7 @@ tags: [Crypto, RE] # add tag
 
 ![image.png](/assets/img/DCTF/2.jpg)
 
-Nay đổi gió, không hẳn là crypto nữa.
+Nay đổi gió, bài này không hẳn là crypto nữa.
 
 *chall.py*
 ```python
