@@ -38,7 +38,7 @@ He he cứ register rồi log acc vô bình thường 😀
 
 *app.py*
 
-```
+```python
 #!/usr/bin/python3
 
 import base64

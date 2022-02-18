@@ -1,0 +1,38 @@
+---
+layout: post
+title: ACSC CTF 2021
+date: 2021-09-18 00:00:00 +0300
+description: WU Crypto # Add post description (optional)
+img: dctf_banner.jpg # Add image post (optional)
+tags: [Crypto, RE] # add tag
+---
+
+# DefCamp Capture the Flag (D-CTF) 2021-22
+
+# Algorithm
+
+![image.png](/assets/img/DCTF/2.jpg)
+
+Nay đổi gió, không hẳn là crypto nữa.
+
+
+**Solve:**
+
+-   Việc đầu tiên cần làm là lấy lại các stream, với c là 256 byte mình
+    cắt lần lượt từ file chal.enc, q là mình cắt từ file chal.py, sau đó
+    xor lại là sẽ được các stream
+
+![image.png](/assets/img/ACSC/4.png)
+
+-   Vì cơ bản mình chỉ cần 2 stream thì có thể attack để lấy m, tham
+    khảo ở đây
+    [link](https://www.cryptologie.net/article/264/same-rsa-modulus-and-correlated-public-exponents/)
+
+-   Sau khi có được m với kiểu dữ liệu long, mình long_to_bytes(m) là ra
+    flag:
+
+![image.png](/assets/img/ACSC/5.png)
+
+=\> FLAG:
+ACSC{changing_e\_is_too_bad_idea_1119332842ed9c60c9917165c57dbd7072b016d5b683b67aba6a648456db189c}
+
