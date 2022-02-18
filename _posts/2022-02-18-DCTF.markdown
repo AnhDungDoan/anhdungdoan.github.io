@@ -15,24 +15,99 @@ tags: [Crypto, RE] # add tag
 
 Nay đổi gió, không hẳn là crypto nữa.
 
+*chall.py*
+```python
+flag = ' [test]'
+hflag = flag.encode('hex')
+iflag = int(hflag[2:], 16)
+
+def polinom(n, m):
+   i = 0
+   z = []
+   s = 0
+   while n > 0:
+   	if n % 2 != 0:
+   		z.append(2 - (n % 4))
+   	else:
+   		z.append(0)
+   	n = (n - z[i])/2
+   	i = i + 1
+   z = z[::-1]
+   l = len(z)
+   for i in range(0, l):
+       s += z[i] * m ** (l - 1 - i)
+   return s
+
+i = 0
+r = ''
+while i < len(str(iflag)):
+   d = str(iflag)[i:i+2]
+   nf = polinom(int(d), 3)
+   r += str(nf)
+   i += 2
+
+print r 
+```
+
+*flag.enc.txt*
+```
+242712673639869973827786401934639193473972235217215301
+```
+
 
 **Solve:**
 
--   Việc đầu tiên cần làm là lấy lại các stream, với c là 256 byte mình
-    cắt lần lượt từ file chal.enc, q là mình cắt từ file chal.py, sau đó
-    xor lại là sẽ được các stream
+-   Nhìn sơ qua thì bài này chỉ mẹo xíu thôi, nó lụm từng 2 kí tự của flag, sau đó quăng vô hàm `polinom` gì đó mà nó tự tạo, ban đầu nhìn vào thì ai cũng sẽ đi theo mà phân tích cái hàm đó, nhưng không, phí thời gian lắm :D
+-   Xét: với mỗi 2 kí tự của flag (flag sau khi chuyển thành int), nó sẽ biến thành 1 số nào đó, vậy thay vì ngồi mò mẫn cái hàm trên, mình gen hết 100 số có thể có 2 kí tự (00->99) rồi xét các trường hợp có thể xảy ra:
+-   Vậy làm sao biết trường hợp nào đúng? Tất nhiên là mình sinh ra toàn bộ các trường hợp, và có 2 cách để sinh: hoặc là đệ quy (backtracking) hoặc là BFS, ở đây mình làm backtracking cho ngắn gọn xúc tích lẹ dễ hiểu. Sau đó xét với file flag encrypted, khi nào mà tương đương toàn bộ thì đó là dãy số mình cần tìm
+**NOTE**: cái kí tự cuối cùng nè, có thể là 1 chữ cái, bẫy ở đây nên nếu làm thuần như trên sẽ không ra kết quả đâu he he
 
-![image.png](/assets/img/ACSC/4.png)
+```python
+from Crypto.Util.number import *
 
--   Vì cơ bản mình chỉ cần 2 stream thì có thể attack để lấy m, tham
-    khảo ở đây
-    [link](https://www.cryptologie.net/article/264/same-rsa-modulus-and-correlated-public-exponents/)
+def polinom(n, m):
+    i = 0
+    z = []
+    s = 0
+    while n > 0:
+        if n % 2 != 0:
+            z.append(2 - (n % 4))
+        else:
+            z.append(0)
+        n = (n - z[i])/2
+        i = i + 1
 
--   Sau khi có được m với kiểu dữ liệu long, mình long_to_bytes(m) là ra
-    flag:
+    z = z[::-1]
+    l = len(z)
+    for i in range(0, l):
+       s += z[i] * m ** (l - 1 - i)
+    return s
 
-![image.png](/assets/img/ACSC/5.png)
+pol = []
+a = "242712673639869973827786401934639193473972235217215301"
+ans = ""
 
-=\> FLAG:
-ACSC{changing_e\_is_too_bad_idea_1119332842ed9c60c9917165c57dbd7072b016d5b683b67aba6a648456db189c}
+for i in range(0, 100):
+    #print(int(polinom(i, 3)))
+    pol.append(int(polinom(i, 3)))
+
+def dq(a, ans):
+    if (a == ""):
+        print(long_to_bytes(int(ans[:-2]+"1")))
+    else:
+        for i in reversed(range(1,5)):
+            fi = a[:i]
+            if (int(fi) in pol):
+                pre = str(pol.index(int(fi)))
+                if (len(pre) == 1):
+                    pre = "0"+pre
+                dq(a[i:], ans + pre)
+
+
+dq(a, ans)
+```
+
+![image.png](/assets/img/DCTF/3.jpg)
+
+=\> FLAG: DCTF{ola_th1s_1s_p0l}
 
