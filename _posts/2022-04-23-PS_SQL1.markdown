@@ -1,0 +1,21 @@
+---
+layout: post
+title: Port Swigger
+date: 2021-09-27 00:00:00 +0300
+description: WU Web # Add post description (optional)
+img: #DUCTF-panel.png # Add image post (optional)
+tags: [Web, Practice] # add tag
+---
+
+# **SQL injection**
+# **Lab: SQL injection vulnerability in WHERE clause allowing retrieval of hidden data**
+**Problem:**
+
+In this lab, when the user selects a category, the application carries out an SQL query like the following:
+*SELECT * FROM products WHERE category = 'Gifts' AND released = 1*
+
+I use 
+
+
+![imane.png](../assets/img/SQL/1_1.jpg)
+![image.png](/assets/img/SQL/1_1.jpg)
